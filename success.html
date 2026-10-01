@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - FreshCart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .result-container {
+            max-width: 500px;
+            margin: 60px auto;
+            text-align: center;
+            background: var(--card-bg);
+            padding: 50px 30px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+        .icon-success {
+            font-size: 5rem;
+            color: #60BB46;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+        .message {
+            color: var(--text-light);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar document-navbar"></nav>
+
+    <main class="container">
+        <div class="result-container">
+            <i class="fa-solid fa-circle-check icon-success"></i>
+            <h1 class="title">Payment Successful!</h1>
+            <p class="message" id="paymentDetails">Thank you for your purchase. Your payment via eSewa has been successfully processed, and your groceries are on their way!</p>
+            <a href="index.html" class="btn btn-primary" style="padding: 12px 30px; border-radius: 50px;">Return to Home</a>
+        </div>
+    </main>
+
+    <footer class="document-footer"></footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        async function saveOrderToDatabase() {
+            // Wait for supabase to initialize
+            for (let i = 0; i < 20; i++) {
+                if (window.supabase) break;
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            const cart = JSON.parse(localStorage.getItem('freshcart') || '[]');
+            if (cart.length === 0) return; // Cart already cleared or empty
+            
+            let subtotal = 0;
+            cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+            });
+            let deliveryFee = subtotal > 0 ? 50 : 0;
+            let finalTotal = subtotal + deliveryFee;
+            
+            if (window.supabase) {
+                const sessionStr = localStorage.getItem('freshcart_session');
+                if (sessionStr) {
+                    try {
+                        const session = JSON.parse(sessionStr);
+                        const userId = session.user.id;
+                        
+                        // Retrieve shipping details cached in localStorage
+                        const checkoutDetailsStr = localStorage.getItem('freshcart_checkout_details');
+                        let checkoutDetails = {};
+                        if (checkoutDetailsStr) {
+                            try {
+                                checkoutDetails = JSON.parse(checkoutDetailsStr);
+                            } catch(e) {
+                                console.error("Error parsing checkout details:", e);
+                            }
+                        }
+                        
+                        const orderData = {
+                            user_id: userId,
+                            items: cart,
+                            subtotal: parseFloat(subtotal.toFixed(2)),
+                            delivery_fee: parseFloat(deliveryFee.toFixed(2)),
+                            total: parseFloat(finalTotal.toFixed(2)),
+                            status: 'Pending',
+                            payment_method: 'eSewa',
+                            payment_status: 'Paid',
+                            full_name: checkoutDetails.full_name || null,
+                            phone: checkoutDetails.phone || null,
+                            shipping_address: checkoutDetails.shipping_address || null
+                        };
+                        
+                        const { data, error } = await window.supabase
+                            .from('orders')
+                            .insert(orderData)
+                            .select('id');
+                            
+                        if (error) {
+                            console.error("Error saving order to Supabase:", error);
+                        } else {
+                            console.log("Order logged successfully in Supabase!");
+
+                            // Send admin notification
+                            if (typeof window.sendAdminNotification === 'function') {
+                                const orderId = data && data[0] ? data[0].id : null;
+                                window.sendAdminNotification({
+                                    ...orderData,
+                                    order_id: orderId
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error parsing session or saving order:", err);
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const method = urlParams.get('method');
+            
+            if (method === 'cod') {
+                // Customize layout for Cash on Delivery
+                document.querySelector('.icon-success').className = "fa-solid fa-truck-ramp-box icon-success";
+                document.querySelector('.icon-success').style.color = "#2980b9";
+                document.querySelector('.title').textContent = "Order Placed Successfully!";
+                document.getElementById('paymentDetails').innerHTML = "Thank you for your purchase! Your order has been successfully registered under <strong>Cash on Delivery (COD)</strong>. We are processing your request and our delivery team will call you before arrival!";
+            } else if (urlParams.has('data')) {
+                // Check response from eSewa
+                try {
+                    const encodedData = urlParams.get('data');
+                    const decodedStr = atob(encodedData);
+                    const parsedData = JSON.parse(decodedStr);
+                    console.log('eSewa Payment Validated Front-End:', parsedData);
+                    
+                    if (parsedData.transaction_uuid) {
+                        document.getElementById('paymentDetails').innerHTML = `Thank you for your purchase. Your payment of <strong>Rs. ${parsedData.total_amount}</strong> (Order UUID: ${parsedData.transaction_uuid}) via eSewa has been successfully processed, and your groceries are on their way!`;
+                    }
+                } catch(e) {
+                    console.error("Failed to decode eSewa response", e);
+                }
+            }
+
+            // Save order in Supabase
+            if (method !== 'cod') {
+                await saveOrderToDatabase();
+            }
+
+            // Empty the cart and checkout details because checkout is completed
+            localStorage.removeItem('freshcart');
+            localStorage.removeItem('freshcart_checkout_details');
+            if (typeof updateGlobalCartCount === 'function') {
+                updateGlobalCartCount();
+            }
+        });
+    </script>
+</body>
+</html>

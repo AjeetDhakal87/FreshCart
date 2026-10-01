@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Sign Up - FreshCart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        body {
+            background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url('images/grocery_login_bg.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .auth-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(5px);
+            transition: var(--transition);
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--secondary-color);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+        }
+
+        .auth-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: var(--card-bg);
+        }
+
+        .auth-body {
+            padding: 40px 30px;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: formFadeIn 0.3s ease-in-out;
+        }
+
+        .alert-error {
+            background-color: #fde8e8;
+            color: #e74c3c;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #f8b4b4;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: #eafaf1;
+            color: var(--primary-color);
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #c2f0d5;
+            font-weight: 500;
+        }
+
+        .form-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .form-subtitle {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .input-icon-group {
+            position: relative;
+        }
+
+        .input-icon-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .input-icon-group .form-control {
+            padding-left: 45px;
+        }
+
+        @keyframes formFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar document-navbar"></nav>
+
+    <main class="container">
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="tabLogin" onclick="switchTab('login')">Log In</div>
+                <div class="auth-tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</div>
+            </div>
+            
+            <div class="auth-body">
+                <!-- Error & Success Alerts -->
+                <div id="errorAlert" class="alert-error">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span id="errorMsg">An error occurred</span>
+                </div>
+                <div id="successAlert" class="alert-success">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span id="successMsg">Success! Redirecting...</span>
+                </div>
+
+                <!-- Login Form -->
+                <div class="auth-form active" id="loginFormContainer">
+                    <h2 class="form-title">Welcome Back</h2>
+                    <p class="form-subtitle">Log in to unlock secure checkout and personalized grocery shopping.</p>
+                    
+                    <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+                        <div class="form-group">
+                            <label for="loginEmail">Email Address</label>
+                            <div class="input-icon-group">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="email" id="loginEmail" class="form-control" placeholder="john@example.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 25px;">
+                            <label for="loginPassword">Password</label>
+                            <div class="input-icon-group">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <button type="submit" id="loginBtn" class="btn btn-primary" style="width: 100%;">
+                            <span id="loginBtnText">Log In</span>
+                            <span id="loginBtnSpinner" style="display: none;"><i class="fa-solid fa-spinner fa-spin"></i> Processing...</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Signup Form -->
+                <div class="auth-form" id="signupFormContainer">
+                    <h2 class="form-title">Create Account</h2>
+                    <p class="form-subtitle">Join FreshCart today to enjoy farm-fresh groceries delivered to your home.</p>
+                    
+                    <form id="signupForm" onsubmit="handleSignupSubmit(event)">
+                        <div class="form-group">
+                            <label for="signupName">Full Name</label>
+                            <div class="input-icon-group">
+                                <i class="fa-regular fa-user"></i>
+                                <input type="text" id="signupName" class="form-control" placeholder="John Doe" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupEmail">Email Address</label>
+                            <div class="input-icon-group">
+                                <i class="fa-regular fa-envelope"></i>
+                                <input type="email" id="signupEmail" class="form-control" placeholder="john@example.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPassword">Password</label>
+                            <div class="input-icon-group">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="signupPassword" class="form-control" placeholder="At least 6 characters" minlength="6" required>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 25px;">
+                            <label for="signupConfirmPassword">Confirm Password</label>
+                            <div class="input-icon-group">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <input type="password" id="signupConfirmPassword" class="form-control" placeholder="Confirm your password" required>
+                            </div>
+                        </div>
+                        <button type="submit" id="signupBtn" class="btn btn-primary" style="width: 100%;">
+                            <span id="signupBtnText">Create Account</span>
+                            <span id="signupBtnSpinner" style="display: none;"><i class="fa-solid fa-spinner fa-spin"></i> Registering...</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="document-footer"></footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Redirect check if already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const redirectCheck = setInterval(() => {
+                const session = localStorage.getItem('freshcart_session');
+                if (session) {
+                    clearInterval(redirectCheck);
+                    const params = new URLSearchParams(window.location.search);
+                    const redirectUrl = params.get('redirect') || 'index.html';
+                    window.location.href = redirectUrl;
+                }
+            }, 500);
+
+            // Timeout after 5 seconds to prevent infinite check
+            setTimeout(() => clearInterval(redirectCheck), 5000);
+        });
+
+        function switchTab(tab) {
+            const tabLogin = document.getElementById('tabLogin');
+            const tabSignup = document.getElementById('tabSignup');
+            const loginForm = document.getElementById('loginFormContainer');
+            const signupForm = document.getElementById('signupFormContainer');
+            const errorAlert = document.getElementById('errorAlert');
+            const successAlert = document.getElementById('successAlert');
+
+            // Reset alerts
+            errorAlert.style.display = 'none';
+            successAlert.style.display = 'none';
+
+            if (tab === 'login') {
+                tabLogin.classList.add('active');
+                tabSignup.classList.remove('active');
+                loginForm.classList.add('active');
+                signupForm.classList.remove('active');
+            } else {
+                tabLogin.classList.remove('active');
+                tabSignup.classList.add('active');
+                loginForm.classList.remove('active');
+                signupForm.classList.add('active');
+            }
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            const errorAlert = document.getElementById('errorAlert');
+            const successAlert = document.getElementById('successAlert');
+            const btnText = document.getElementById('loginBtnText');
+            const btnSpinner = document.getElementById('loginBtnSpinner');
+            const btn = document.getElementById('loginBtn');
+
+            // Reset states
+            errorAlert.style.display = 'none';
+            successAlert.style.display = 'none';
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline-block';
+            btn.disabled = true;
+
+            try {
+                if (!window.authHelpers) {
+                    throw new Error("Supabase auth engine not loaded yet. Please wait a moment and try again.");
+                }
+                const data = await window.authHelpers.signIn(email, password);
+                
+                successAlert.style.display = 'flex';
+                document.getElementById('successMsg').textContent = "Login successful! Welcome back.";
+                
+                // Get redirect url from param
+                const params = new URLSearchParams(window.location.search);
+                const redirectUrl = params.get('redirect') || 'index.html';
+
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 1000);
+            } catch (err) {
+                console.error("Login Error:", err);
+                errorAlert.style.display = 'flex';
+                document.getElementById('errorMsg').textContent = err.message || "Invalid credentials. Please try again.";
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+
+        async function handleSignupSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            
+            const errorAlert = document.getElementById('errorAlert');
+            const successAlert = document.getElementById('successAlert');
+            const btnText = document.getElementById('signupBtnText');
+            const btnSpinner = document.getElementById('signupBtnSpinner');
+            const btn = document.getElementById('signupBtn');
+
+            // Reset states
+            errorAlert.style.display = 'none';
+            successAlert.style.display = 'none';
+
+            if (password !== confirmPassword) {
+                errorAlert.style.display = 'flex';
+                document.getElementById('errorMsg').textContent = "Passwords do not match.";
+                return;
+            }
+
+            btnText.style.display = 'none';
+            btnSpinner.style.display = 'inline-block';
+            btn.disabled = true;
+
+            try {
+                if (!window.authHelpers) {
+                    throw new Error("Supabase auth engine not loaded yet. Please wait a moment and try again.");
+                }
+                const data = await window.authHelpers.signUp(email, password, name);
+                
+                successAlert.style.display = 'flex';
+                
+                // Check if email confirmation is required by Supabase
+                const isConfirmed = data.user && data.user.identities && data.user.identities.length > 0;
+                if (data.session) {
+                    document.getElementById('successMsg').textContent = "Registration successful! Welcome to FreshCart.";
+                    
+                    const params = new URLSearchParams(window.location.search);
+                    const redirectUrl = params.get('redirect') || 'index.html';
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1500);
+                } else {
+                    document.getElementById('successMsg').textContent = "Account created! Please check your email for the confirmation link.";
+                    btnText.style.display = 'inline';
+                    btnSpinner.style.display = 'none';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error("Signup Error:", err);
+                errorAlert.style.display = 'flex';
+                document.getElementById('errorMsg').textContent = err.message || "Failed to create account. Please try again.";
+                btnText.style.display = 'inline';
+                btnSpinner.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

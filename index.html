@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshCart - Grocery E-commerce</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--secondary-color);
+            border-radius: 24px;
+            padding: 60px;
+            margin-top: 20px;
+        }
+        .hero-content { max-width: 50%; }
+        .hero-title { font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 20px; }
+        .hero-text { font-size: 1.2rem; color: var(--text-light); margin-bottom: 30px; }
+        .hero-image { width: 45%; max-width: 400px; }
+        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-top: 60px; }
+        .feature-card { text-align: center; padding: 30px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); }
+        .feature-icon { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 20px; }
+        
+        /* New Sections Styles */
+        .section-title { text-align: center; font-size: 2.5rem; font-weight: 700; margin: 80px 0 40px; color: var(--text-dark); }
+        
+        .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }
+        .category-card { background: var(--secondary-color); padding: 30px 20px; border-radius: 16px; text-align: center; cursor: pointer; transition: var(--transition); text-decoration: none; display: block; color: var(--text-dark); border: 1px solid transparent; }
+        .category-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .category-icon { font-size: 2.5rem; margin-bottom: 15px; }
+
+        .promo-banner { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); border-radius: 24px; padding: 60px; display: flex; align-items: center; justify-content: space-between; margin-top: 80px; color: #fff; box-shadow: var(--shadow-sm); }
+        .promo-content h2 { font-size: 3rem; font-weight: 800; margin-bottom: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .promo-content p { font-size: 1.2rem; margin-bottom: 30px; font-weight: 500; opacity: 0.9; }
+        .promo-image { width: 300px; height: 300px; object-fit: cover; border-radius: 50%; border: 10px solid rgba(255,255,255,0.2); filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1)); }
+
+
+        @media(max-width: 768px) {
+            .hero { flex-direction: column; text-align: center; padding: 40px 20px; }
+            .hero-content { max-width: 100%; margin-bottom: 40px; }
+            .hero-image { width: 80%; }
+            .features { grid-template-columns: 1fr; }
+            .section-title { font-size: 2rem; margin: 60px 0 30px; }
+            .promo-banner { flex-direction: column; text-align: center; padding: 40px 20px; }
+            .promo-content { margin-bottom: 30px; }
+            .promo-content h2 { font-size: 2.2rem; }
+            .promo-image { width: 200px; height: 200px; border-width: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar document-navbar"></nav>
+
+    <main class="container">
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="hero-title">Fresh Groceries <br>Delivered Daily.</h1>
+                <p class="hero-text">Get organic, farm-fresh products delivered straight to your doorstep within hours. Shop smart, live healthy.</p>
+                <div class="search-bar" style="display: flex; margin-bottom: 20px; max-width: 450px; background: var(--card-bg); border-radius: 50px; padding: 5px; box-shadow: var(--shadow-sm);">
+                    <input type="text" id="heroSearchInput" placeholder="Search for groceries..." style="flex: 1; border: none; background: transparent; padding: 10px 20px; outline: none; color: var(--text-dark); font-size: 1rem;">
+                    <button onclick="handleHeroSearch()" class="btn btn-primary" style="border-radius: 50px; padding: 10px 25px;"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+                </div>
+                <script>
+                    function handleHeroSearch() {
+                        const query = document.getElementById('heroSearchInput').value.trim();
+                        if(query) {
+                            window.location.href = 'products.html?search=' + encodeURIComponent(query);
+                        } else {
+                            window.location.href = 'products.html';
+                        }
+                    }
+                    
+                    document.getElementById('heroSearchInput').addEventListener('keypress', function(e) {
+                         if(e.key === 'Enter') handleHeroSearch();
+                    });
+                </script>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <a href="products.html" class="btn btn-primary">Shop Now</a>
+                    <a href="#features" class="btn btn-outline">Explore Features</a>
+                </div>
+            </div>
+            <!-- Using a standard illustration as placeholder. I can update with an AI generated beautiful food basket if needed -->
+            <img src="images/products/featured_1.jpg" alt="Fresh Groceries Basket" class="hero-image" style="border-radius: 20px; box-shadow: var(--shadow-md);">
+        </section>
+
+        <section id="features" class="features">
+            <div class="feature-card">
+                <i class="fa-solid fa-leaf feature-icon"></i>
+                <h3>100% Organic</h3>
+                <p style="color: var(--text-light); margin-top: 10px;">Sourced directly from local sustainable farms.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-truck-fast feature-icon"></i>
+                <h3>Fast Delivery</h3>
+                <p style="color: var(--text-light); margin-top: 10px;">Same-day delivery for all your essential needs.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fa-solid fa-shield-halved feature-icon"></i>
+                <h3>Secure Payment</h3>
+                <p style="color: var(--text-light); margin-top: 10px;">We ensure your payment details are heavily protected.</p>
+            </div>
+        </section>
+
+        <!-- Shop by Category Section -->
+        <h2 class="section-title">Shop by Category</h2>
+        <section class="categories">
+            <a href="products.html?category=fruits" class="category-card">
+                <i class="fa-solid fa-apple-whole category-icon"></i>
+                <h3>Fruits</h3>
+            </a>
+            <a href="products.html?category=vegetables" class="category-card">
+                <i class="fa-solid fa-carrot category-icon"></i>
+                <h3>Vegetables</h3>
+            </a>
+            <a href="products.html?category=dairy" class="category-card">
+                <i class="fa-solid fa-cheese category-icon"></i>
+                <h3>Dairy</h3>
+            </a>
+            <a href="products.html?category=snacks" class="category-card">
+                <i class="fa-solid fa-bread-slice category-icon"></i>
+                <h3>Snacks & Bakery</h3>
+            </a>
+            <a href="products.html?category=meat" class="category-card">
+                <i class="fa-solid fa-drumstick-bite category-icon"></i>
+                <h3>Meat</h3>
+            </a>
+        </section>
+
+        <!-- Promo Banner Section -->
+        <section class="promo-banner">
+            <div class="promo-content">
+                <h2>Fresh Deal of the Day!</h2>
+                <p>Get up to 50% off on all organic fruits. Hurry, limited time offer!</p>
+                <a href="products.html" class="btn btn-primary" style="background: #fff; color: #fda085; font-size: 1.1rem; padding: 12px 30px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">Shop the Deal</a>
+            </div>
+            <img src="images/products/featured_2.jpg" alt="Fresh Fruits" class="promo-image">
+        </section>
+
+        <!-- Featured Products Section -->
+        <h2 class="section-title">Featured Products</h2>
+        <div class="product-grid">
+            <div class="product-card" data-id="16" data-name="Banana" data-price="60" data-image="images/products/Banana.jpeg" data-category="fruits" data-unit="darjan">
+                <img src="images/products/Banana.jpeg" alt="Bananas" class="product-img">
+                <p class="product-category">Fruits</p>
+                <h3 class="product-name">Banana</h3>
+                <p class="product-price">Rs. 60 <span class="price-unit">/Darjan</span></p>
+                <button class="btn btn-primary featured-add-btn" style="width: 100%; border-radius: 50px;" onclick="addFeaturedToCart(this)"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
+            </div>
+            <div class="product-card" data-id="7" data-name="Carrot" data-price="50" data-image="images/products/Carrot.jpg" data-category="vegetables" data-unit="kg">
+                <img src="images/products/Carrot.jpg" alt="Carrots" class="product-img">
+                <p class="product-category">Vegetables</p>
+                <h3 class="product-name">Carrot</h3>
+                <p class="product-price">Rs. 50 <span class="price-unit">/KG</span></p>
+                <button class="btn btn-primary featured-add-btn" style="width: 100%; border-radius: 50px;" onclick="addFeaturedToCart(this)"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
+            </div>
+            <div class="product-card" data-id="47" data-name="Milk" data-price="75" data-image="images/products/Milk.avif" data-category="dairy" data-unit="litre">
+                <img src="images/products/Milk.avif" alt="Milk" class="product-img">
+                <p class="product-category">Dairy</p>
+                <h3 class="product-name">Milk</h3>
+                <p class="product-price">Rs. 75 <span class="price-unit">/L</span></p>
+                <button class="btn btn-primary featured-add-btn" style="width: 100%; border-radius: 50px;" onclick="addFeaturedToCart(this)"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
+            </div>
+            <div class="product-card" data-id="66" data-name="Bread" data-price="55" data-image="images/products/bread.webp" data-category="snacks" data-unit="pack">
+                <img src="images/products/bread.webp" alt="Bread" class="product-img">
+                <p class="product-category">Bakery</p>
+                <h3 class="product-name">Bread</h3>
+                <p class="product-price">Rs. 55 <span class="price-unit">/Pack</span></p>
+                <button class="btn btn-primary featured-add-btn" style="width: 100%; border-radius: 50px;" onclick="addFeaturedToCart(this)"><i class="fa-solid fa-cart-plus"></i> Add to Cart</button>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="products.html" class="btn btn-outline" style="border-radius: 50px; padding: 12px 30px;">View All Products <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+
+        <script>
+            function addFeaturedToCart(btn) {
+                const card = btn.closest('.product-card');
+                const product = {
+                    id: parseInt(card.dataset.id),
+                    name: card.dataset.name,
+                    price: parseFloat(card.dataset.price),
+                    image: card.dataset.image,
+                    category: card.dataset.category
+                };
+
+                let cart = JSON.parse(localStorage.getItem('freshcart') || '[]');
+                const existingIndex = cart.findIndex(item => item.id === product.id);
+
+                // Determine default step/quantity based on unit
+                const unitType = card.dataset.unit || 'kg';
+                const step = ['kg', 'litre', 'darjan'].includes(unitType) ? 0.5 : 1;
+
+                if (existingIndex >= 0) {
+                    cart[existingIndex].quantity += step;
+                    cart[existingIndex].quantity = Math.round(cart[existingIndex].quantity * 100) / 100;
+                    cart[existingIndex].unit = unitType;
+                } else {
+                    cart.push({ ...product, quantity: step, unit: unitType });
+                }
+
+                localStorage.setItem('freshcart', JSON.stringify(cart));
+
+                if (typeof updateGlobalCartCount === 'function') {
+                    updateGlobalCartCount();
+                }
+
+                // Visual feedback
+                const oldHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Added!';
+                btn.style.backgroundColor = '#27ae60';
+                btn.disabled = true;
+                setTimeout(() => {
+                    btn.innerHTML = oldHTML;
+                    btn.style.backgroundColor = '';
+                    btn.disabled = false;
+                }, 1200);
+            }
+        </script>
+
+    </main>
+
+    <footer class="document-footer"></footer>
+
+    <script src="js/products.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+

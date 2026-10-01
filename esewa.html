@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to eSewa...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body {
+            background-color: #f5f7fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            margin: 0;
+            flex-direction: column;
+        }
+        .esewa-logo {
+            background-color: #60BB46;
+            color: white;
+            padding: 15px 30px;
+            font-size: 2.5rem;
+            font-weight: 800;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            display: inline-block;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #ddd;
+            border-top: 4px solid #60BB46;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        p { color: #555; }
+        .note {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #888;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="esewa-logo">eSewa</div>
+    <div style="max-width: 500px; background: white; padding: 32px 24px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; margin: 20px auto;">
+        <div style="font-size: 3rem; color: #f59e0b; margin-bottom: 12px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> ⚠️
+        </div>
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: #1e293b; margin-bottom: 10px;">Payment Gateway Not Active</h2>
+        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6; margin-bottom: 15px;">
+            This website is currently a <strong>demo and under construction</strong>. Online payment integration via eSewa is not yet implemented.
+        </p>
+        <p style="color: #ef4444; font-size: 0.9rem; font-weight: 600; margin-bottom: 24px;">
+            No live transactions can be processed and deliveries will not be dispatched.
+        </p>
+        <a href="checkout.html" style="display: inline-block; background-color: #60BB46; color: white; text-decoration: none; padding: 12px 24px; border-radius: 50px; font-weight: 700; font-size: 0.95rem;">
+            ← Return to Checkout (Choose COD)
+        </a>
+    </div>
+
+    <!-- Live eSewa Production Endpoint -->
+    <form action="https://epay.esewa.com.np/api/epay/main/v2/form" method="POST" id="esewaForm">
+        <input type="hidden" id="amount" name="amount" value="" required>
+        <input type="hidden" id="tax_amount" name="tax_amount" value ="0" required>
+        <input type="hidden" id="total_amount" name="total_amount" value="" required>
+        <input type="hidden" id="transaction_uuid" name="transaction_uuid" required>
+        <input type="hidden" id="product_code" name="product_code" value ="" required>
+        <input type="hidden" id="product_service_charge" name="product_service_charge" value="0" required>
+        <input type="hidden" id="product_delivery_charge" name="product_delivery_charge" value="" required>
+        <input type="hidden" id="success_url" name="success_url" value="" required>
+        <input type="hidden" id="failure_url" name="failure_url" value="" required>
+        <input type="hidden" id="signed_field_names" name="signed_field_names" value="total_amount,transaction_uuid,product_code" required>
+        <input type="hidden" id="signature" name="signature" value="" required>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Check for file protocol
+            if (window.location.protocol === 'file:') {
+                document.getElementById('localhostWarning').style.display = 'block';
+            }
+
+            // Get total from local storage
+            const cart = JSON.parse(localStorage.getItem('freshcart') || '[]');
+            let subtotal = 0;
+            cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+            });
+
+            let deliveryFee = subtotal > 0 ? 50 : 0;
+            let finalTotal = subtotal + deliveryFee;
+
+            // Remove JavaScript floating point inaccuracies (e.g. 10.4500000001 -> 10.45)
+            finalTotal = Math.round(finalTotal * 100) / 100;
+            subtotal = Math.round(subtotal * 100) / 100;
+
+            if (finalTotal === 0) {
+                alert("Your cart is empty! Redirecting to products page.");
+                window.location.href = "products.html";
+                return;
+            }
+
+            // ==========================================
+            // eSewa Production Credentials
+            // Replace these with the credentials provided by eSewa support
+            // ==========================================
+            const product_code = "YOUR_LIVE_MERCHANT_CODE"; // e.g. "NP-ES-YOURCODE"
+            const secret = "YOUR_LIVE_SECRET_KEY";         // e.g. "8gBm/:&EnhH.1/q"
+            // ==========================================
+            
+            // Format order id uniquely
+            const uuid = "FC-" + new Date().getTime() + "-" + Math.floor(Math.random() * 100);
+
+            // Construct exact string for HMAC: total_amount=VAL,transaction_uuid=VAL,product_code=VAL
+            // We stringify the number explicitly to ensure exact match between signature and input form!
+            const totalAmountStr = String(finalTotal);
+            const message = `total_amount=${totalAmountStr},transaction_uuid=${uuid},product_code=${product_code}`;
+            const hash = CryptoJS.HmacSHA256(message, secret);
+            const signatureStr = CryptoJS.enc.Base64.stringify(hash);
+
+            // Set Form Values
+            document.getElementById('product_code').value = product_code;
+            document.getElementById('amount').value = String(subtotal);
+            document.getElementById('product_delivery_charge').value = String(deliveryFee);
+            document.getElementById('total_amount').value = totalAmountStr;
+            document.getElementById('transaction_uuid').value = uuid;
+            document.getElementById('signature').value = signatureStr;
+
+            // Generate Callbacks
+            let baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+            
+            // eSewa strictly rejects 'file://' URLs for callback. Use a dummy callback to allow testing if local.
+            if (baseUrl.startsWith('file://')) {
+                document.getElementById('localhostWarning').innerText = "Note: Running on 'file://'. eSewa strictly rejects file URLs. You will be redirected to google.com upon completion since we cannot bounce back. Please use a local web server (like VS Code Live Server) to see the full redirect.";
+                baseUrl = "https://google.com";
+            }
+            
+            document.getElementById('success_url').value = baseUrl + "/success.html";
+            document.getElementById('failure_url').value = baseUrl + "/failure.html";
+
+            // Payment is currently disabled / site is under construction
+            console.warn("eSewa payment submission disabled: website is in demo/under construction state.");
+        });
+    </script>
+</body>
+</html>

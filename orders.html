@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - FreshCart</title>
+    <meta name="description" content="View your order history, track order status, and check estimated delivery dates for your FreshCart grocery orders.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .page-header { text-align: center; margin: 40px 0; }
+        .page-title { font-size: 2.5rem; font-weight: 800; color: var(--text-dark); margin-bottom: 10px; }
+        
+        /* Order Filters */
+        .order-filters {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .filter-chip {
+            padding: 8px 20px;
+            border-radius: 50px;
+            border: 2px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .filter-chip:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        .filter-chip.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .filter-chip .chip-count {
+            display: inline-block;
+            background: rgba(255,255,255,0.25);
+            padding: 1px 8px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+        .filter-chip.active .chip-count {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .orders-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .order-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            background: var(--bg-color);
+            transition: all 0.3s ease;
+        }
+        .order-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--secondary-color);
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .order-header-info {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* Status Tracker */
+        .order-tracker {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.03), rgba(96, 187, 70, 0.06));
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tracker-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tracker-steps {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: relative;
+        }
+        .tracker-steps::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 30px;
+            right: 30px;
+            height: 3px;
+            background: var(--border-color);
+            z-index: 0;
+        }
+        .tracker-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+        }
+        .step-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            background: var(--card-bg);
+            border: 3px solid var(--border-color);
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+        .step-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-align: center;
+            max-width: 80px;
+        }
+        .tracker-step.completed .step-icon {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        .tracker-step.completed .step-label {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        .tracker-step.active .step-icon {
+            background: white;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.15);
+            animation: pulseStep 2s infinite;
+        }
+        .tracker-step.active .step-label {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        .tracker-step.cancelled .step-icon {
+            background: #e74c3c;
+            border-color: #e74c3c;
+            color: white;
+        }
+        .tracker-step.cancelled .step-label {
+            color: #e74c3c;
+        }
+
+        @keyframes pulseStep {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(39, 174, 96, 0.15); }
+            50% { box-shadow: 0 0 0 8px rgba(39, 174, 96, 0.08); }
+        }
+
+        /* Delivery date highlight */
+        .delivery-highlight {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            margin: 0 20px 0;
+            background: linear-gradient(135deg, rgba(96, 187, 70, 0.08), rgba(39, 174, 96, 0.12));
+            border-radius: 10px;
+            border: 1px dashed var(--primary-color);
+        }
+        .delivery-highlight i {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+        .delivery-highlight .delivery-text {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+        .delivery-highlight .delivery-date-val {
+            color: var(--primary-color);
+            font-weight: 800;
+        }
+
+        .order-body {
+            padding: 20px;
+        }
+
+        .order-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .order-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .item-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .item-details {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .item-meta {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .item-price {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--bg-color);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .order-status-badge {
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-pending { background-color: #fef08a; color: #854d0e; }
+        .status-processing { background-color: #bfdbfe; color: #1e40af; }
+        .status-shipped { background-color: #fbcfe8; color: #9d174d; }
+        .status-delivered { background-color: #bbf7d0; color: #166534; }
+        .status-cancelled { background-color: #fecaca; color: #991b1b; }
+
+        /* Toggle body */
+        .order-body-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px;
+            background: var(--secondary-color);
+            border: none;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: inherit;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        .order-body-toggle:hover {
+            color: var(--primary-color);
+            background: rgba(39, 174, 96, 0.05);
+        }
+        .order-body-toggle i {
+            transition: transform 0.3s ease;
+        }
+        .order-body-toggle.expanded i {
+            transform: rotate(180deg);
+        }
+
+        .order-body.collapsed {
+            display: none;
+        }
+
+        #loadingOrders {
+            text-align: center;
+            padding: 50px;
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+
+        #noOrders {
+            text-align: center;
+            padding: 50px;
+            display: none;
+        }
+        
+        #noOrders i {
+            font-size: 4rem;
+            color: var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        /* Summary Stats */
+        .orders-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: var(--secondary-color);
+            padding: 18px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        .stat-card .stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+        .stat-card .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        /* Search Box */
+        .order-search-wrap {
+            margin-bottom: 22px;
+            position: relative;
+        }
+        .order-search-wrap i.search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1rem;
+            pointer-events: none;
+        }
+        #orderSearchInput {
+            width: 100%;
+            padding: 13px 16px 13px 44px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: var(--bg-color);
+            color: var(--text-dark);
+            transition: border-color 0.25s, box-shadow 0.25s;
+            box-sizing: border-box;
+        }
+        #orderSearchInput:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(39,174,96,0.12);
+        }
+        #orderSearchInput::placeholder {
+            color: var(--text-light);
+        }
+        #searchClearBtn {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: 1rem;
+            display: none;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: color 0.2s;
+        }
+        #searchClearBtn:hover { color: var(--text-dark); }
+        .search-no-result {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--text-light);
+        }
+        .search-no-result i { font-size: 2.5rem; display: block; margin-bottom: 12px; color: var(--border-color); }
+
+        /* History Section */
+        .history-section {
+            max-width: 1000px;
+            margin: 40px auto 0;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .history-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .history-section-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .history-section-title i { color: var(--primary-color); }
+        .history-range-select {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            font-size: 0.88rem;
+            font-family: inherit;
+            font-weight: 600;
+            background: var(--bg-color);
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .history-range-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        /* History summary cards */
+        .history-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .history-summary-card {
+            background: var(--secondary-color);
+            border-radius: 12px;
+            padding: 18px 16px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .history-summary-card .hsc-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+        .history-summary-card .hsc-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-light);
+        }
+        /* Bar chart */
+        .history-chart-wrap {
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+        .history-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+            min-height: 160px;
+            padding: 0 4px 0;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .hc-bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 38px;
+            cursor: default;
+        }
+        .hc-bar-track {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 140px;
+            position: relative;
+        }
+        .hc-bar {
+            width: 80%;
+            border-radius: 5px 5px 0 0;
+            min-height: 4px;
+            transition: opacity 0.2s;
+            position: relative;
+        }
+        .hc-bar:hover { opacity: 0.82; }
+        .hc-bar-revenue { background: linear-gradient(180deg, var(--primary-color), #60bb46); }
+        .hc-bar-orders  { background: linear-gradient(180deg, #3b82f6, #60a5fa); }
+        .hc-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-dark);
+            color: white;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 5px 9px;
+            border-radius: 6px;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .hc-bar:hover .hc-tooltip { display: block; }
+        .hc-date-label {
+            font-size: 0.68rem;
+            color: var(--text-light);
+            font-weight: 600;
+            margin-top: 6px;
+            text-align: center;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* Chart legend */
+        .chart-legend {
+            display: flex;
+            gap: 18px;
+            margin-top: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        /* Daily rows table */
+        .history-table-wrap {
+            margin-top: 28px;
+            overflow-x: auto;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .history-table th {
+            text-align: left;
+            padding: 10px 14px;
+            background: var(--secondary-color);
+            color: var(--text-light);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .history-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-dark);
+            vertical-align: middle;
+        }
+        .history-table tr:last-child td { border-bottom: none; }
+        .history-table tr:hover td { background: var(--secondary-color); }
+        .hrow-date { font-weight: 700; }
+        .hrow-rev { color: var(--primary-color); font-weight: 800; }
+        .hrow-orders { color: #1e40af; font-weight: 700; }
+        .hrow-avg { color: var(--text-light); }
+        .hrow-badge {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        #historySection { display: none; }
+
+        @media (max-width: 768px) {
+            .order-header { flex-direction: column; align-items: flex-start; }
+            .order-header-info { flex-direction: column; gap: 15px; }
+            .order-footer { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .tracker-steps { flex-wrap: nowrap; gap: 0; }
+            .step-label { font-size: 0.65rem; max-width: 60px; }
+            .step-icon { width: 30px; height: 30px; font-size: 0.75rem; }
+            .history-section { padding: 20px 14px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar document-navbar"></nav>
+
+    <main class="container">
+        <div class="page-header">
+            <h1 class="page-title">My Orders</h1>
+            <p style="color: var(--text-light);">Track your orders, view delivery dates, and browse your complete order history.</p>
+        </div>
+
+        <!-- Order Filters -->
+        <div class="order-filters" id="orderFilters" style="display: none;">
+            <button class="filter-chip active" data-filter="all" onclick="filterOrders('all', this)">All Orders</button>
+            <button class="filter-chip" data-filter="Pending" onclick="filterOrders('Pending', this)">Pending</button>
+            <button class="filter-chip" data-filter="Processing" onclick="filterOrders('Processing', this)">Processing</button>
+            <button class="filter-chip" data-filter="Shipped" onclick="filterOrders('Shipped', this)">Shipped</button>
+            <button class="filter-chip" data-filter="Delivered" onclick="filterOrders('Delivered', this)">Delivered</button>
+            <button class="filter-chip" data-filter="Cancelled" onclick="filterOrders('Cancelled', this)">Cancelled</button>
+        </div>
+
+        <div class="orders-container">
+            <!-- Stats Row -->
+            <div class="orders-stats" id="ordersStats" style="display: none;"></div>
+
+            <!-- Search Box -->
+            <div class="order-search-wrap" id="orderSearchWrap" style="display: none;">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="orderSearchInput" placeholder="Search by Order ID (e.g. FC-12345 or 12345)…" autocomplete="off">
+                <button id="searchClearBtn" title="Clear search"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="loadingOrders">
+                <i class="fa-solid fa-spinner fa-spin"></i> Loading your orders...
+            </div>
+            
+            <div id="noOrders">
+                <i class="fa-solid fa-box-open"></i>
+                <h2>No Orders Yet</h2>
+                <p style="color: var(--text-light); margin-top: 10px; margin-bottom: 20px;">You haven't placed any orders yet. Start shopping to see your orders here.</p>
+                <a href="products.html" class="btn btn-primary">Start Shopping</a>
+            </div>
+
+            <div id="ordersList">
+                <!-- Orders will be dynamically injected here -->
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <section class="history-section" id="historySection">
+            <div class="history-section-header">
+                <div class="history-section-title">
+                    <i class="fa-solid fa-chart-column"></i>
+                    Revenue & Order History
+                </div>
+                <select class="history-range-select" id="historyRangeSelect" onchange="renderHistorySection()">
+                    <option value="7">Last 7 Days</option>
+                    <option value="14">Last 14 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="all">All Time</option>
+                </select>
+            </div>
+
+            <!-- Summary cards -->
+            <div class="history-summary-grid" id="historySummaryGrid"></div>
+
+            <!-- Bar Chart -->
+            <div class="history-chart-wrap">
+                <div class="history-chart" id="historyChart"></div>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--primary-color);"></div>
+                    Revenue (Rs.)
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #3b82f6;"></div>
+                    Orders Count
+                </div>
+            </div>
+
+            <!-- Daily breakdown table -->
+            <div class="history-table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Orders</th>
+                            <th>Revenue</th>
+                            <th>Avg. Order Value</th>
+                            <th>Best Selling Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="document-footer"></footer>
+
+    <script src="js/products.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/orders.js"></script>
+</body>
+</html>

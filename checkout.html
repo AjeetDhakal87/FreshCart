@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout - FreshCart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 40px;
+            margin-top: 30px;
+            align-items: start;
+        }
+
+        .checkout-section {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .form-control {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15);
+        }
+
+        /* Payment Methods Card */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .payment-option {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            transition: var(--transition);
+            background-color: var(--bg-color);
+            position: relative;
+        }
+
+        .payment-option:hover {
+            border-color: var(--primary-color);
+        }
+
+        .payment-option.active {
+            border-color: var(--primary-color);
+            background-color: var(--secondary-color);
+        }
+
+        .payment-option input[type="radio"] {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            accent-color: var(--primary-color);
+            width: 18px;
+            height: 18px;
+        }
+
+        .payment-option-icon {
+            font-size: 2rem;
+        }
+
+        .payment-option-esewa {
+            color: #60BB46;
+        }
+
+        .payment-option-cod {
+            color: #2980b9;
+        }
+
+        /* Order Summary Card */
+        .order-summary {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 100px;
+        }
+
+        .summary-items {
+            max-height: 240px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 5px;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .summary-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .summary-item-info {
+            flex-grow: 1;
+        }
+
+        .summary-item-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+
+        .summary-item-qty {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .summary-item-price {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--primary-color);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .summary-total {
+            border-top: 2px dashed var(--border-color);
+            padding-top: 15px;
+            margin-top: 15px;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: var(--text-dark);
+        }
+
+        /* Loader Overlay */
+        .order-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .order-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .order-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #333;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media(max-width: 992px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+            .order-summary {
+                position: static;
+            }
+        }
+
+        .save-address-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.05), rgba(96, 187, 70, 0.08));
+            border: 1px dashed var(--primary-color);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            transition: var(--transition);
+        }
+
+        .save-address-container:hover {
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.08), rgba(96, 187, 70, 0.12));
+            transform: translateY(-2px);
+        }
+
+        .save-address-checkbox {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .save-address-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            color: var(--text-dark);
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0 !important;
+        }
+
+        /* Demo / Under Construction Notice Modal & Badge */
+        .esewa-badge-notice {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-top: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .esewa-notice-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(6px);
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+            visibility: hidden;
+        }
+
+        .esewa-notice-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+            visibility: visible;
+        }
+
+        .esewa-notice-card {
+            background: #ffffff;
+            border-radius: 20px;
+            max-width: 480px;
+            width: 100%;
+            padding: 32px 28px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.92);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            border: 1px solid #e2e8f0;
+        }
+
+        .esewa-notice-modal.active .esewa-notice-card {
+            transform: scale(1);
+        }
+
+        .esewa-notice-icon-wrap {
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 20px auto;
+            background: #fff7ed;
+            border: 2px solid #fed7aa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ea580c;
+            font-size: 2rem;
+            animation: bounceSoft 2s infinite ease-in-out;
+        }
+
+        @keyframes bounceSoft {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .esewa-notice-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .esewa-notice-text {
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .esewa-notice-alert-box {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-size: 0.85rem;
+            color: #334155;
+            text-align: left;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .esewa-notice-alert-box i {
+            color: #f59e0b;
+            font-size: 1.1rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .esewa-notice-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .esewa-btn-cod {
+            width: 100%;
+            padding: 14px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.98rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .esewa-btn-cod:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .esewa-btn-close {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .esewa-btn-close:hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar document-navbar"></nav>
+
+    <main class="container">
+        <h1>Checkout Details</h1>
+        
+        <div class="checkout-grid">
+            <!-- Left Panel: Delivery Information & Payment Method -->
+            <form id="checkoutForm">
+                <!-- Delivery Info Section -->
+                <div class="checkout-section">
+                    <h2 class="section-title">
+                        <i class="fa-solid fa-truck"></i> Delivery Information
+                    </h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fullName">Full Name</label>
+                            <input type="text" id="fullName" class="form-control" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Mobile Number</label>
+                            <input type="tel" id="phone" class="form-control" placeholder="e.g. 98XXXXXXXX" pattern="[9][0-9]{9}" title="Enter a valid 10-digit mobile number starting with 9" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="streetAddress">Street Address</label>
+                        <input type="text" id="streetAddress" class="form-control" placeholder="House no, Street Name, Tole" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <select id="city" class="form-control" required>
+                                <option value="" disabled selected>Select your City</option>
+                                <option value="Kathmandu">Kathmandu</option>
+                                <option value="Lalitpur">Lalitpur</option>
+                                <option value="Bhaktapur">Bhaktapur</option>
+                                <option value="Pokhara">Pokhara</option>
+                                <option value="Biratnagar">Biratnagar</option>
+                                <option value="Chitwan">Chitwan</option>
+                                <option value="Butwal">Butwal</option>
+                                <option value="Dharan">Dharan</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="province">Province</label>
+                            <select id="province" class="form-control" required>
+                                <option value="" disabled selected>Select Province</option>
+                                <option value="Koshi Province">Koshi Province</option>
+                                <option value="Madhesh Province">Madhesh Province</option>
+                                <option value="Bagmati Province">Bagmati Province</option>
+                                <option value="Gandaki Province">Gandaki Province</option>
+                                <option value="Lumbini Province">Lumbini Province</option>
+                                <option value="Karnali Province">Karnali Province</option>
+                                <option value="Sudurpashchim Province">Sudurpashchim Province</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="deliveryNote">Delivery Note (Optional)</label>
+                        <input type="text" id="deliveryNote" class="form-control" placeholder="e.g. Leave near the gate, call before arrival">
+                    </div>
+
+                    <div class="save-address-container">
+                        <input type="checkbox" id="saveAddress" class="save-address-checkbox" checked>
+                        <label for="saveAddress" class="save-address-label">
+                            <i class="fa-regular fa-bookmark" style="color: var(--primary-color);"></i> Save this address to my profile for future orders
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Payment Options Section -->
+                <div class="checkout-section">
+                    <h2 class="section-title">
+                        <i class="fa-solid fa-credit-card"></i> Select Payment Method
+                    </h2>
+                    
+                    <div class="payment-methods">
+                        <div class="payment-option active" id="payOptionEsewa">
+                            <input type="radio" name="paymentMethod" value="eSewa" checked>
+                            <i class="fa-solid fa-wallet payment-option-icon payment-option-esewa"></i>
+                            <span>Pay with eSewa</span>
+                            <span style="font-size: 0.75rem; color: var(--text-light); text-align: center; font-weight: 500;">Digital Nepal Wallet Gateway</span>
+                            <span class="esewa-badge-notice">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Demo Only / Unavailable
+                            </span>
+                        </div>
+                        
+                        <div class="payment-option" id="payOptionCod">
+                            <input type="radio" name="paymentMethod" value="COD">
+                            <i class="fa-solid fa-hand-holding-dollar payment-option-icon payment-option-cod"></i>
+                            <span>Cash on Delivery</span>
+                            <span style="font-size: 0.75rem; color: var(--text-light); text-align: center; font-weight: 500;">Pay with Cash at your Door</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Right Panel: Order Summary & Placement -->
+            <div class="order-summary">
+                <h2 style="margin-bottom: 20px; font-weight: 800;">Order Summary</h2>
+                
+                <!-- Cart Items List -->
+                <div class="summary-items" id="summaryItemsContainer">
+                    <!-- Dynamic Cart Items -->
+                </div>
+                
+                <!-- Bill Breakdown -->
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotalAmount">Rs. 0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery Fee</span>
+                    <span id="deliveryAmount">Rs. 0.00</span>
+                </div>
+                <div class="summary-row summary-total">
+                    <span>Total Amount</span>
+                    <span id="totalAmount">Rs. 0.00</span>
+                </div>
+                
+                <button type="submit" form="checkoutForm" class="btn btn-primary" style="width: 100%; padding: 15px; font-weight: 700; font-size: 1.1rem; border-radius: 50px; background-color: #60BB46; border: none; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    Place Order <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- eSewa Not Working / Demo & Under Construction Alert Modal -->
+    <div class="esewa-notice-modal" id="esewaNoticeModal" role="dialog" aria-modal="true" aria-labelledby="esewaNoticeTitle">
+        <div class="esewa-notice-card">
+            <div class="esewa-notice-icon-wrap">
+                <i class="fa-solid fa-person-digging"></i>
+            </div>
+            <h2 class="esewa-notice-title" id="esewaNoticeTitle">Site Under Construction</h2>
+            <p class="esewa-notice-text">
+                Online payment via <strong>eSewa is currently not implemented & not working</strong>. This is a demonstration website.
+            </p>
+            <div class="esewa-notice-alert-box">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div>
+                    <strong>Important Notice:</strong><br>
+                    You cannot make live payments through eSewa, and orders placed with this method cannot be processed or delivered.
+                </div>
+            </div>
+            <div class="esewa-notice-actions">
+                <button type="button" class="esewa-btn-cod" id="switchToCodBtn">
+                    <i class="fa-solid fa-hand-holding-dollar"></i> Switch to Cash on Delivery (COD)
+                </button>
+                <button type="button" class="esewa-btn-close" id="closeEsewaNoticeBtn">
+                    Close Notice
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Order Screen Overlay -->
+    <div class="order-overlay" id="orderOverlay">
+        <div class="order-spinner"></div>
+        <h2 style="font-weight: 800; font-size: 1.8rem; margin-bottom: 10px;">Processing Your Order</h2>
+        <p style="color: #bbb;" id="overlayStatusText">Securing transaction connection...</p>
+    </div>
+
+    <footer class="document-footer"></footer>
+
+    <script src="js/products.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Checkout state management
+        document.addEventListener('DOMContentLoaded', () => {
+            // Guarantee checkoutCheck is satisfied
+            if (typeof window.checkoutCheck === 'function') {
+                window.checkoutCheck();
+            }
+            
+            renderCheckoutSummary();
+            initPaymentOptionToggles();
+            prefillUserData();
+            
+            document.getElementById('checkoutForm').addEventListener('submit', handleOrderSubmit);
+            
+            // Re-prefill when profile updates asynchronously
+            window.addEventListener('auth-changed', () => {
+                prefillUserData();
+            });
+
+            // eSewa Notice Modal Action Handlers
+            const esewaNoticeModal = document.getElementById('esewaNoticeModal');
+            const closeEsewaNoticeBtn = document.getElementById('closeEsewaNoticeBtn');
+            const switchToCodBtn = document.getElementById('switchToCodBtn');
+
+            if (closeEsewaNoticeBtn && esewaNoticeModal) {
+                closeEsewaNoticeBtn.addEventListener('click', () => {
+                    esewaNoticeModal.classList.remove('active');
+                });
+            }
+
+            if (switchToCodBtn && esewaNoticeModal) {
+                switchToCodBtn.addEventListener('click', () => {
+                    esewaNoticeModal.classList.remove('active');
+                    const optCod = document.getElementById('payOptionCod');
+                    const optEsewa = document.getElementById('payOptionEsewa');
+                    if (optCod && optEsewa) {
+                        optCod.classList.add('active');
+                        optEsewa.classList.remove('active');
+                        const radio = optCod.querySelector('input[type="radio"]');
+                        if (radio) radio.checked = true;
+                    }
+                });
+            }
+
+            // Close modal when clicking on backdrop
+            if (esewaNoticeModal) {
+                esewaNoticeModal.addEventListener('click', (e) => {
+                    if (e.target === esewaNoticeModal) {
+                        esewaNoticeModal.classList.remove('active');
+                    }
+                });
+            }
+        });
+
+        // Prefill contact data from logged-in user profile
+        function prefillUserData() {
+            const profileStr = localStorage.getItem('freshcart_profile');
+            if (profileStr) {
+                try {
+                    const profile = JSON.parse(profileStr);
+                    if (profile.full_name) {
+                        document.getElementById('fullName').value = profile.full_name;
+                    }
+                    if (profile.phone) {
+                        document.getElementById('phone').value = profile.phone;
+                    }
+                    if (profile.street_address) {
+                        document.getElementById('streetAddress').value = profile.street_address;
+                    }
+                    if (profile.city) {
+                        document.getElementById('city').value = profile.city;
+                    }
+                    if (profile.province) {
+                        document.getElementById('province').value = profile.province;
+                    }
+                } catch(e) {
+                    console.error("Failed to parse user profile details", e);
+                }
+            }
+        }
+
+        // Render Summary Items and Calculate Totals
+        function renderCheckoutSummary() {
+            const container = document.getElementById('summaryItemsContainer');
+            const subtotalEl = document.getElementById('subtotalAmount');
+            const deliveryEl = document.getElementById('deliveryAmount');
+            const totalEl = document.getElementById('totalAmount');
+            
+            if (!container) return;
+            
+            const cart = JSON.parse(localStorage.getItem('freshcart') || '[]');
+            if (cart.length === 0) {
+                alert("Your cart is empty! Redirecting to products page.");
+                window.location.href = "products.html";
+                return;
+            }
+            
+            container.innerHTML = '';
+            let subtotal = 0;
+            
+            cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+
+                // Get unit label for display
+                const unitType = item.unit || 'kg';
+                const unitLabel = (typeof getUnitLabel === 'function') ? getUnitLabel(unitType, item.quantity) : `Qty: ${item.quantity}`;
+
+                const div = document.createElement('div');
+                div.className = 'summary-item';
+                div.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <div class="summary-item-info">
+                        <div class="summary-item-name">${item.name}</div>
+                        <div class="summary-item-qty">${unitLabel}</div>
+                    </div>
+                    <div class="summary-item-price">Rs. ${(item.price * item.quantity).toFixed(2)}</div>
+                `;
+                container.appendChild(div);
+            });
+            
+            const deliveryFee = subtotal > 0 ? 50 : 0;
+            const finalTotal = subtotal + deliveryFee;
+            
+            subtotalEl.textContent = `Rs. ${subtotal.toFixed(2)}`;
+            deliveryEl.textContent = `Rs. ${deliveryFee.toFixed(2)}`;
+            totalEl.textContent = `Rs. ${finalTotal.toFixed(2)}`;
+        }
+
+        // Handle Payment Card Selection Toggles
+        function initPaymentOptionToggles() {
+            const optEsewa = document.getElementById('payOptionEsewa');
+            const optCod = document.getElementById('payOptionCod');
+            
+            if (optEsewa && optCod) {
+                optEsewa.addEventListener('click', () => {
+                    optEsewa.classList.add('active');
+                    optCod.classList.remove('active');
+                    optEsewa.querySelector('input[type="radio"]').checked = true;
+                });
+                
+                optCod.addEventListener('click', () => {
+                    optCod.classList.add('active');
+                    optEsewa.classList.remove('active');
+                    optCod.querySelector('input[type="radio"]').checked = true;
+                });
+            }
+        }
+
+        // Handle Form Submission / Checkout Execution
+        async function handleOrderSubmit(e) {
+            e.preventDefault();
+            
+            // Get form details
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const streetAddress = document.getElementById('streetAddress').value.trim();
+            const city = document.getElementById('city').value;
+            const province = document.getElementById('province').value;
+            const address = `${streetAddress}, ${city}, ${province}`;
+            const note = document.getElementById('deliveryNote').value.trim();
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+            
+            // Save address detail cache in local storage for order database insertion
+            const checkoutDetails = {
+                full_name: fullName,
+                phone: phone,
+                shipping_address: address + (note ? ` (Note: ${note})` : '')
+            };
+            localStorage.setItem('freshcart_checkout_details', JSON.stringify(checkoutDetails));
+
+            // Wait for Supabase client
+            for (let i = 0; i < 20; i++) {
+                if (window.supabase) break;
+                await new Promise(r => setTimeout(r, 100));
+            }
+
+            // Save address to user profile if checkbox is checked
+            const saveAddressChecked = document.getElementById('saveAddress').checked;
+            if (saveAddressChecked && window.supabase) {
+                const sessionStr = localStorage.getItem('freshcart_session');
+                if (sessionStr) {
+                    try {
+                        const session = JSON.parse(sessionStr);
+                        const userId = session.user.id;
+                        
+                        const profileUpdate = {
+                            full_name: fullName,
+                            phone: phone,
+                            street_address: streetAddress,
+                            city: city,
+                            province: province,
+                            updated_at: new Date().toISOString()
+                        };
+                        
+                        const { error } = await window.supabase
+                            .from('profiles')
+                            .update(profileUpdate)
+                            .eq('id', userId);
+                            
+                        if (error) {
+                            console.error("Failed to update profile address in database:", error);
+                        } else {
+                            console.log("Address details saved to user profile!");
+                            // Update localStorage cached profile
+                            const profileStr = localStorage.getItem('freshcart_profile');
+                            if (profileStr) {
+                                const cachedProfile = JSON.parse(profileStr);
+                                const updatedProfile = { ...cachedProfile, ...profileUpdate };
+                                localStorage.setItem('freshcart_profile', JSON.stringify(updatedProfile));
+                                
+                                // Dispatch auth event to update profile UI globally
+                                window.dispatchEvent(new CustomEvent('auth-changed', {
+                                    detail: { session, profile: updatedProfile }
+                                }));
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error updating profile during checkout:", err);
+                    }
+                }
+            }
+            
+            // Show Loader Overlay
+            const overlay = document.getElementById('orderOverlay');
+            const statusText = document.getElementById('overlayStatusText');
+            overlay.classList.add('active');
+            
+            const cart = JSON.parse(localStorage.getItem('freshcart') || '[]');
+            let subtotal = 0;
+            cart.forEach(item => subtotal += item.price * item.quantity);
+            const deliveryFee = subtotal > 0 ? 50 : 0;
+            const finalTotal = subtotal + deliveryFee;
+            
+            if (paymentMethod === 'eSewa') {
+                // Instantly remove processing overlay
+                overlay.classList.remove('active');
+                
+                // Show Under Construction / Demo Website notice modal
+                const noticeModal = document.getElementById('esewaNoticeModal');
+                if (noticeModal) {
+                    noticeModal.classList.add('active');
+                } else {
+                    alert("Site Under Construction: Online payment via eSewa is currently not implemented and not working. This is a demo website. You cannot pay via eSewa and orders cannot be delivered.");
+                }
+                return;
+            } else {
+                // Cash on Delivery direct database logging
+                statusText.textContent = "Logging order in database...";
+                
+                if (window.supabase) {
+                    const sessionStr = localStorage.getItem('freshcart_session');
+                    if (sessionStr) {
+                        try {
+                            const session = JSON.parse(sessionStr);
+                            const userId = session.user.id;
+                            
+                            const orderData = {
+                                user_id: userId,
+                                items: cart,
+                                subtotal: parseFloat(subtotal.toFixed(2)),
+                                delivery_fee: parseFloat(deliveryFee.toFixed(2)),
+                                total: parseFloat(finalTotal.toFixed(2)),
+                                status: 'Pending',
+                                payment_method: 'COD',
+                                payment_status: 'Pending',
+                                full_name: fullName,
+                                phone: phone,
+                                shipping_address: checkoutDetails.shipping_address
+                            };
+                            
+                            const { data, error } = await window.supabase
+                                .from('orders')
+                                .insert(orderData)
+                                .select('id');
+                                
+                            if (error) {
+                                console.error("Database order insertion error:", error);
+                                alert("Failed to log order. Please check connection and try again.");
+                                overlay.classList.remove('active');
+                                return;
+                            }
+                            
+                            console.log("COD Order placed successfully in Supabase!");
+
+                            // Send admin notification
+                            if (typeof window.sendAdminNotification === 'function') {
+                                const orderId = data && data[0] ? data[0].id : null;
+                                window.sendAdminNotification({
+                                    ...orderData,
+                                    order_id: orderId
+                                });
+                            }
+                        } catch (err) {
+                            console.error("Order processing error:", err);
+                        }
+                    }
+                }
+                
+                statusText.textContent = "Order Placed! Thank you.";
+                
+                // Clear cart
+                localStorage.removeItem('freshcart');
+                localStorage.removeItem('freshcart_checkout_details');
+                if (typeof updateGlobalCartCount === 'function') {
+                    updateGlobalCartCount();
+                }
+                
+                setTimeout(() => {
+                    window.location.href = "success.html?method=cod";
+                }, 1200);
+            }
+        }
+    </script>
+</body>
+</html>
