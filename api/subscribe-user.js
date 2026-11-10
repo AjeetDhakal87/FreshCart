@@ -122,7 +122,7 @@ export default async function handler(req, res) {
                                         <p class="coupon-desc">10% OFF on your entire first purchase • Enter code at checkout</p>
                                     </div>
 
-                                    <a href="https://freshcart-theta-indol.vercel.app/products.html" class="btn">Start Shopping Now</a>
+                                    <a href="https://freshcart-rust.vercel.app/products.html" class="btn">Start Shopping Now</a>
                                 </div>
                                 <div class="footer">
                                     © ${new Date().getFullYear()} FreshCart Store. All rights reserved.<br>
