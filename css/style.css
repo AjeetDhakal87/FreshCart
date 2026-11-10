@@ -1,0 +1,62 @@
+/* Variables & Reset */
+:root {
+  --primary-color: #27ae60;
+  --primary-hover: #219653;
+  --secondary-color: #f1f8f5;
+  --text-dark: #2c3e50;
+  --text-light: #7f8c8d;
+  --bg-color: #ffffff;
+  --card-bg: #ffffff;
+  --border-color: #e0e0e0;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --transition: all 0.3s ease;
+  --font-family: 'Inter', sans-serif;
+}
+
+[data-theme='dark'] {
+  --primary-color: #2ecc71;
+  --primary-hover: #27ae60;
+  --secondary-color: #1a2520;
+  --text-dark: #ecf0f1;
+  --text-light: #bdc3c7;
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --border-color: #333333;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-dark);
+  line-height: 1.6;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+li {
+  list-style: none;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+main {
+  min-height: calc(100vh - 160px);
+  padding: 40px 0;
+}

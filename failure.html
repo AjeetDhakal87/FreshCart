@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Failed - FreshCart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        .result-container {
+            max-width: 500px;
+            margin: 60px auto;
+            text-align: center;
+            background: var(--card-bg);
+            padding: 50px 30px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+        .icon-error {
+            font-size: 5rem;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+        .message {
+            color: var(--text-light);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar document-navbar"></nav>
+
+    <main class="container">
+        <div class="result-container">
+            <i class="fa-solid fa-circle-xmark icon-error"></i>
+            <h1 class="title">Payment Failed</h1>
+            <p class="message" id="paymentDetails">We could not process your payment via eSewa. You may have cancelled the transaction, or there was a gateway error.</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <a href="cart.html" class="btn btn-primary" style="padding: 12px 30px; border-radius: 50px;">Return to Cart</a>
+                <a href="index.html" class="btn btn-outline" style="padding: 12px 30px; border-radius: 50px;">Home Page</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="document-footer"></footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
