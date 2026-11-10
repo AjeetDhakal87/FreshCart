@@ -130,6 +130,138 @@ export default async function handler(req, res) {
             </body>
             </html>
             `;
+        } else if (type === 'abandoned_cart') {
+            const customerName = name || 'Valued Customer';
+            const cartItems = Array.isArray(req.body.cart) ? req.body.cart : [];
+            const coupon = req.body.couponCode || 'WELCOME10';
+
+            subject = `🛒 Did you forget something fresh in your cart, ${customerName}?`;
+
+            let subtotal = 0;
+            const itemRows = cartItems.map(item => {
+                const itemTotal = (parseFloat(item.price || 0) * (item.quantity || 1)).toFixed(2);
+                subtotal += parseFloat(itemTotal);
+                const unit = item.unit || 'kg';
+                const imgSrc = item.image && item.image.startsWith('http') 
+                    ? item.image 
+                    : `https://freshcart-rust.vercel.app/${item.image ? item.image.replace(/^\//, '') : 'images/products/featured_1.jpg'}`;
+
+                return `
+                    <tr style="border-bottom: 1px solid #edf2f7;">
+                        <td width="60" style="padding: 14px 16px;">
+                            <img src="${imgSrc}" alt="${item.name || 'Product'}" width="50" height="50" style="border-radius: 8px; object-fit: cover; display: block;">
+                        </td>
+                        <td style="padding: 14px 10px;">
+                            <div style="font-weight: 700; color: #2d3748; font-size: 14px;">${item.name || 'Product'}</div>
+                            <div style="color: #718096; font-size: 12px; margin-top: 2px;">Qty: ${item.quantity || 1} ${unit}</div>
+                        </td>
+                        <td align="right" style="padding: 14px 16px; font-weight: 800; color: #2d3748; font-size: 15px;">
+                            Rs. ${itemTotal}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            htmlContent = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Your FreshCart Basket is Waiting</title>
+            </head>
+            <body style="margin: 0; padding: 0; background-color: #f4f7f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f7f6; padding: 30px 10px;">
+                    <tr>
+                        <td align="center">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+                                <tr>
+                                    <td align="center" style="background: linear-gradient(135deg, #60BB46, #489e32); padding: 35px 20px; color: #ffffff;">
+                                        <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">FreshCart</h1>
+                                        <p style="margin: 6px 0 0 0; font-size: 14px; opacity: 0.95; font-weight: 500;">Farm Fresh Groceries at Your Doorstep</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 35px 30px 25px 30px;">
+                                        <div style="text-align: center; margin-bottom: 24px;">
+                                            <span style="display: inline-block; background-color: #fef3c7; color: #92400e; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+                                                🛒 Cart Reminder
+                                            </span>
+                                            <h2 style="margin: 14px 0 8px 0; color: #1a202c; font-size: 22px; font-weight: 800;">
+                                                Did you forget something fresh?
+                                            </h2>
+                                            <p style="margin: 0; color: #4a5568; font-size: 15px; line-height: 1.6;">
+                                                Hi <strong>${customerName}</strong>, we noticed you left some delicious items in your basket. We've temporarily reserved them for you, but seasonal farm produce goes quickly!
+                                            </p>
+                                        </div>
+
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f8fafc; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 24px; overflow: hidden;">
+                                            <tr>
+                                                <td colspan="3" style="padding: 12px 16px; background-color: #edf2f7; font-size: 12px; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                    Items In Your Cart
+                                                </td>
+                                            </tr>
+                                            ${itemRows || '<tr><td colspan="3" style="padding: 16px; text-align: center; color: #718096;">Your fresh items are waiting in your cart.</td></tr>'}
+                                            <tr>
+                                                <td colspan="2" align="right" style="padding: 14px 10px; font-size: 14px; color: #718096;">
+                                                    Subtotal:
+                                                </td>
+                                                <td align="right" style="padding: 14px 16px; font-size: 16px; font-weight: 800; color: #60BB46;">
+                                                    Rs. ${subtotal.toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        ${coupon ? `
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f0fdf4; border: 2px dashed #60BB46; border-radius: 12px; margin-bottom: 28px;">
+                                            <tr>
+                                                <td style="padding: 16px; text-align: center;">
+                                                    <div style="font-size: 12px; font-weight: 800; color: #2b8a3e; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                        🏷️ First Order Bonus
+                                                    </div>
+                                                    <div style="font-size: 14px; color: #2d3748; margin-top: 4px;">
+                                                        Don't forget to use coupon <strong style="color: #276749; letter-spacing: 1px;">${coupon}</strong> at checkout for <strong>10% OFF</strong>!
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        ` : ''}
+
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 25px;">
+                                            <tr>
+                                                <td align="center">
+                                                    <a href="https://freshcart-rust.vercel.app/cart.html" target="_blank" style="display: inline-block; background-color: #60BB46; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 800; padding: 16px 36px; border-radius: 50px; box-shadow: 0 4px 14px rgba(96, 187, 70, 0.4); text-align: center;">
+                                                        Return to Cart &amp; Checkout ➜
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                                            <tr>
+                                                <td align="center" style="font-size: 13px; color: #718096; line-height: 1.8;">
+                                                    🚚 <strong>Express Local Delivery</strong> &nbsp;•&nbsp; 
+                                                    🌿 <strong>100% Quality Guaranteed</strong> &nbsp;•&nbsp; 
+                                                    💵 <strong>Cash on Delivery</strong>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="background-color: #f8fafc; padding: 25px 20px; border-top: 1px solid #edf2f7; font-size: 12px; color: #a0aec0; line-height: 1.6;">
+                                        © ${new Date().getFullYear()} FreshCart Store. All rights reserved.<br>
+                                        Kathmandu, Nepal • Need help? <a href="mailto:${senderEmail}" style="color: #60BB46; text-decoration: underline;">Contact Support</a><br>
+                                        <span style="font-size: 11px; margin-top: 6px; display: inline-block;">You received this because you have items saved in your FreshCart basket.</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+            `;
         } else {
             // Generic email format
             subject = req.body.subject || 'Notification from FreshCart';
